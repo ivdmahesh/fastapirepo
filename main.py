@@ -10,7 +10,7 @@ from langchain_qdrant.qdrant import QdrantVectorStore
 
 app = FastAPI()
 
-prod = False
+prod = True
 
 if(prod):
     qdrantendpoint = os.environ['qdrantendpoint']
