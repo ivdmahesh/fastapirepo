@@ -8,6 +8,10 @@ from langchain_openai import  ChatOpenAI, OpenAIEmbeddings
 from qdrant_client import QdrantClient, models
 from langchain_qdrant.qdrant import QdrantVectorStore
 
+from langchain_core.prompts.chat import ChatPromptTemplate
+from langchain_core.runnables import RunnablePassthrough, RunnableParallel
+from operator import itemgetter
+
 app = FastAPI()
 
 prod = True
@@ -50,6 +54,32 @@ if(new_collection):
 vector_store = QdrantVectorStore(client=client, collection_name= collection_name, 
                                  embedding=OpenAIEmbeddings(api_key=openaiapikey))
 
+retriever = vector_store.as_retriever()
+
+prompt_template = """
+Answer the question based on the context, in a concise manner, in markdown and using bullet points, giving importance to timelines and locations where applicable.
+
+Context: {context}
+Question: {question}
+Answer:
+"""
+
+prompt = ChatPromptTemplate.from_template(prompt_template)
+
+def create_chain():
+    chain = (
+        {
+            "context":retriever.with_config(top_k=4),
+            "question":RunnablePassthrough()
+        }
+        | RunnableParallel({
+            "response": prompt | model,
+            "context": itemgetter("context")
+        })
+    )
+    return chain
+
+
 class Message(BaseModel):
     message: str
 
@@ -60,14 +90,18 @@ def chat(message:Message):
         response_content = {
         "question":message.message,
         "answer":response["answer"],
-        "documents":[doc for doc in response["context"]]
+        "documents":[doc.dict() for doc in response["context"]]
         }
         return JSONResponse(content=response_content, status_code=200)
     except Exception as e:
         return JSONResponse(content={"message":"Exception occured: "+str(e)}, status_code=404)
 
 def get_answer_and_docs(question:str):
+    chain=create_chain()
+    response = chain.invoke(question)
+    answer = response["response"].content
+    context = response["context"]
     return {
-        "answer":f"answer to the question: {question}",
-        "context":[{"contextkey":"context will come here"}]
+        "answer":answer,
+        "context":context
     }
