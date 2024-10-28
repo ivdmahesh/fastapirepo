@@ -11,10 +11,24 @@ from langchain_qdrant.qdrant import QdrantVectorStore
 from langchain_core.prompts.chat import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough, RunnableParallel
 from operator import itemgetter
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
+origins = [
+    "http://localhost:3000",
+    "https://frontend-av19ki7s8-maheshs-projects-6dabae76.vercel.app"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_methods=["*"]
+)
+
 prod = True
+
+
 
 if(prod):
     qdrantendpoint = os.environ['qdrantendpoint']
