@@ -221,7 +221,7 @@ def upload_profile_to_collection(profile_content):
          )
     vector_store = QdrantVectorStore(client=client, collection_name= collection_name, 
                                  embedding=OpenAIEmbeddings(api_key=openaiapikey))  
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000,chunk_overlap=20,
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=500,chunk_overlap=20,
                                                    length_function=len)
     docs = text_splitter.create_documents([profile_content["text"]])
     for doc in docs:
