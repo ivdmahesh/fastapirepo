@@ -27,7 +27,8 @@ origins = [
     "http://localhost:3000",
     "https://frontend-9kba3honx-maheshs-projects-6dabae76.vercel.app",
     "https://frontend-livid-six-56.vercel.app",
-    "https://www.inmycolony.com"
+    "https://www.inmycolony.com",
+    "https://client-six-coral.vercel.app"
 ]
 
 app.add_middleware(
